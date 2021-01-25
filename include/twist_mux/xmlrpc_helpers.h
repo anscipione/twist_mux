@@ -38,23 +38,28 @@
 #define XMLRPCHELPERS_H
 
 #include <sstream>
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 
 namespace xh
 {
 
-class XmlrpcHelperException : public ros::Exception
+class XmlrpcHelperException : public std::exception
 {
 public:
   XmlrpcHelperException(const std::string& what)
-    : ros::Exception(what) {}
+  : what_(what)
+  {  }
+  
+ const noexcept override {return what_.c_str();}
+private :
+  std::string what_;
 };
 
 typedef XmlRpc::XmlRpcValue Struct;
 typedef XmlRpc::XmlRpcValue Array;
 
 template <class T>
-void fetchParam(ros::NodeHandle nh, const std::string& param_name, T& output)
+void fetchParam(rclcpp::NodeHandle nh, const std::string& param_name, T& output)
 {
   XmlRpc::XmlRpcValue val;
   if (!nh.getParamCached(param_name, val))

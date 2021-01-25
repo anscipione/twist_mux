@@ -21,17 +21,19 @@
 #ifndef TWIST_MUX_DIAGNOSTICS_H
 #define TWIST_MUX_DIAGNOSTICS_H
 
+#include "twist_mux/visibility_control.h"
+
 #include <twist_mux/twist_mux_diagnostics_status.h>
 
-#include <diagnostic_updater/diagnostic_updater.h>
-#include <ros/ros.h>
+#include <diagnostic_updater/diagnostic_updater.hpp>
+#include <rclcpp/rclcpp.hpp>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace twist_mux
 {
 
-class TwistMuxDiagnostics
+class TwistMuxDiagnostics //: public rclcpp::Node
 {
   public:
     typedef TwistMuxDiagnosticsStatus status_type;
@@ -39,7 +41,10 @@ class TwistMuxDiagnostics
     static constexpr double MAIN_LOOP_TIME_MIN = 0.2; // [s]
     static constexpr double READING_AGE_MIN    = 3.0; // [s]
 
-    TwistMuxDiagnostics();
+    //COMPOSITION_PUBLIC
+    //explicit 
+    TwistMuxDiagnostics(rclcpp::Node *n);//const rclcpp::NodeOptions & options);
+
     virtual ~TwistMuxDiagnostics();
 
     void diagnostics(diagnostic_updater::DiagnosticStatusWrapper& stat);
@@ -55,11 +60,11 @@ class TwistMuxDiagnostics
      */
     enum
     {
-      OK    = diagnostic_msgs::DiagnosticStatus::OK,
-      WARN  = diagnostic_msgs::DiagnosticStatus::WARN,
-      ERROR = diagnostic_msgs::DiagnosticStatus::ERROR
+      OK    = diagnostic_msgs::msg::DiagnosticStatus::OK,
+      WARN  = diagnostic_msgs::msg::DiagnosticStatus::WARN,
+      ERROR = diagnostic_msgs::msg::DiagnosticStatus::ERROR
     };
-
+    std::shared_ptr<rclcpp::Node> n_;
     diagnostic_updater::Updater diagnostic_;
     status_type                 status_;
 };

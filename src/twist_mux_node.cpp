@@ -19,20 +19,30 @@
  * @author Siegfried Gevatter
  */
 
-#include <ros/ros.h>
+#include "rclcpp/rclcpp.hpp"
 #include <twist_mux/twist_mux.h>
 
 int
 main(int argc, char *argv[])
 {
-  ros::init(argc, argv, "twist_mux");
+  rclcpp::init(argc, argv);
 
-  twist_mux::TwistMux mux;
+/*
+  rclcpp::executors::SingleThreadedExecutor exec;
+  rclcpp::NodeOptions options;
+  auto talker = std::make_shared<twist_mux::TwistMux>(options);
+  exec.add_node(talker);
 
-  while (ros::ok())
-  {
-    ros::spin();
-  }
+  exec.spin();
+*/
+  rclcpp::executors::SingleThreadedExecutor exec;
+  auto mux =std::make_shared<twist_mux::TwistMux>();
+  exec.add_node(mux);
+  exec.spin();
+  RCLCPP_INFO(mux->get_logger(),"SPIN EXIT");
+  //rclcpp::spin(std::make_shared<twist_mux::TwistMux>());
+
+  rclcpp::shutdown();
 
   return EXIT_SUCCESS;
 }

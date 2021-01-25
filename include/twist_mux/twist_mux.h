@@ -22,9 +22,16 @@
 #ifndef TWIST_MUX_H
 #define TWIST_MUX_H
 
-#include <ros/ros.h>
-#include <std_msgs/Bool.h>
-#include <geometry_msgs/Twist.h>
+#include <chrono>
+#include <functional>
+#include <memory>
+#include <string>
+
+#include "rclcpp/rclcpp.hpp"
+
+#include <std_msgs/msg/bool.hpp>
+#include <geometry_msgs/msg/twist.hpp>
+#include <geometry_msgs/msg/twist_stamped.hpp>
 
 #include <list>
 
@@ -41,7 +48,7 @@ class LockTopicHandle;
  * @brief The TwistMux class implements a top-level twist multiplexer module
  * that priorize different velocity command topic inputs according to locks.
  */
-class TwistMux
+class TwistMux : public rclcpp::Node
 {
 public:
 
@@ -52,23 +59,23 @@ public:
   typedef std::list<VelocityTopicHandle> velocity_topic_container;
   typedef std::list<LockTopicHandle>     lock_topic_container;
 
-  TwistMux(int window_size = 10);
+  TwistMux(const std::string name = "twist_mux_node");
   ~TwistMux();
 
   bool hasPriority(const VelocityTopicHandle& twist);
 
-  void publishTwist(const geometry_msgs::TwistConstPtr& msg);
+  void publishTwist(const geometry_msgs::msg::Twist::ConstSharedPtr& msg);
 
-  void updateDiagnostics(const ros::TimerEvent& event);
+  void updateDiagnostics();
 
 protected:
 
   typedef TwistMuxDiagnostics       diagnostics_type;
   typedef TwistMuxDiagnosticsStatus status_type;
 
-  ros::Timer diagnostics_timer_;
+  rclcpp::TimerBase::SharedPtr diagnostics_timer_;
 
-  static constexpr double DIAGNOSTICS_PERIOD = 1.0;
+  static constexpr int DIAGNOSTICS_PERIOD = 1;
 
   /**
    * @brief velocity_hs_ Velocity topics' handles.
@@ -79,20 +86,22 @@ protected:
   // @todo use handle_container (see above)
   //handle_container<VelocityTopicHandle> velocity_hs_;
   //handle_container<LockTopicHandle> lock_hs_;
-  boost::shared_ptr<velocity_topic_container> velocity_hs_;
-  boost::shared_ptr<lock_topic_container>     lock_hs_;
+  std::shared_ptr<velocity_topic_container> velocity_hs_;
+  std::shared_ptr<lock_topic_container>     lock_hs_;
 
-  ros::Publisher cmd_pub_;
+  rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr  cmd_pub_;
 
-  geometry_msgs::Twist last_cmd_;
+  geometry_msgs::msg::Twist last_cmd_;
 
   template<typename T>
-  void getTopicHandles(ros::NodeHandle& nh, ros::NodeHandle& nh_priv, const std::string& param_name, std::list<T>& topic_hs);
+  void getTopicHandles( const std::string& param_name, std::list<T>& topic_hs);
 
   int getLockPriority();
 
-  boost::shared_ptr<diagnostics_type> diagnostics_;
-  boost::shared_ptr<status_type>      status_;
+  std::shared_ptr<diagnostics_type> diagnostics_;
+  std::shared_ptr<status_type>      status_;
+  rclcpp::Duration period_;
+  //rclcpp::TimerBase::SharedPtr update_timer_;
 };
 
 } // namespace twist_mux

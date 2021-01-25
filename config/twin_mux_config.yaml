@@ -1,0 +1,37 @@
+twin_mux:
+   ros__parameters:
+      locks:
+         pause:
+           topic   : pause_navigation
+           timeout : 0.0
+           # Same priority as joystick control, so it'll not block it.
+           priority: 100
+         loop_closure:
+           topic   : stop_closing_loop
+           timeout : 0.0
+           priority: 200
+         joystick: 
+          topic   : joy_priority
+          timeout : 0.0
+          priority: 100
+      topics:
+        -
+          name    : navigation
+          topic   : nav_vel
+          timeout : 0.5
+          priority: 10
+        -
+          name    : joystick
+          topic   : joy_vel
+          timeout : 0.5
+          priority: 100
+        -
+          name    : keyboard
+          topic   : key_vel
+          timeout : 0.5
+          priority: 90
+        -
+          name    : tablet
+          topic   : tab_vel
+          timeout : 0.5
+          priority: 100
